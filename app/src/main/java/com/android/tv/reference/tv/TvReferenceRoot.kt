@@ -24,13 +24,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -38,7 +34,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -57,18 +52,20 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.zIndex
+import androidx.tv.foundation.lazy.list.TvLazyRow
+import androidx.tv.foundation.lazy.list.items
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlin.math.max
 
 private enum class FocusRegion {
-    Header,
     StreamA,
     StreamB,
     TopShelf,
+    StockWidget,
     Ticker,
     Dock,
     SocialPanel
@@ -83,45 +80,49 @@ private data class TopShelfCard(
 
 @Composable
 fun TvReferenceRoot() {
-    val overscanPadding = 24.dp
+    val safePadding = 24.dp
     val streamARequester = remember { FocusRequester() }
     val streamBRequester = remember { FocusRequester() }
     val shelfRequester = remember { FocusRequester() }
+    val stockRequester = remember { FocusRequester() }
     val tickerRequester = remember { FocusRequester() }
     val dockRequester = remember { FocusRequester() }
     val socialRequester = remember { FocusRequester() }
+
     var focusedRegion by rememberSaveable { mutableStateOf(FocusRegion.TopShelf) }
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
     var selectedProvider by rememberSaveable { mutableStateOf<SocialProviderClient>(SocialProviders.youtube) }
     var tickerPaused by rememberSaveable { mutableStateOf(false) }
     val reducedMotion = rememberReducedMotion()
     val hazeState = remember { HazeState() }
+
     val cards = remember {
         listOf(
-            TopShelfCard("resume-1", "Resume: Matchday Final", "Live sports • 4K", "LIVE"),
-            TopShelfCard("live-2", "Newsroom Prime", "Breaking • 15m ago", "NEW"),
-            TopShelfCard("movie-3", "Night Drive", "Movie • 2h 13m", "RESUME"),
-            TopShelfCard("album-4", "Electric Bloom", "Music video • Dolby", "TRENDING"),
-            TopShelfCard("show-5", "Deep Space Briefing", "Series • S2 E7", "HOT"),
-            TopShelfCard("doc-6", "Ocean Signals", "Documentary • 58m", "NEW")
+            TopShelfCard("resume-1", "Resume: Matchday Final", "live sports • 4k", "live"),
+            TopShelfCard("live-2", "Newsroom Prime", "breaking • 15m ago", "new"),
+            TopShelfCard("movie-3", "Night Drive", "movie • 2h 13m", "resume"),
+            TopShelfCard("album-4", "Electric Bloom", "music video • dolby", "trending"),
+            TopShelfCard("show-5", "Deep Space Briefing", "series • s2 e7", "hot"),
+            TopShelfCard("doc-6", "Ocean Signals", "documentary • 58m", "new"),
+            TopShelfCard("queue-7", "Live: City Derby", "play in stream b", "live")
         )
     }
 
-    fun focusRegion(region: FocusRegion): Boolean {
+    fun moveFocus(region: FocusRegion): Boolean {
         focusedRegion = region
         return when (region) {
             FocusRegion.StreamA -> streamARequester.requestFocus()
             FocusRegion.StreamB -> streamBRequester.requestFocus()
             FocusRegion.TopShelf -> shelfRequester.requestFocus()
+            FocusRegion.StockWidget -> stockRequester.requestFocus()
             FocusRegion.Ticker -> tickerRequester.requestFocus()
             FocusRegion.Dock -> dockRequester.requestFocus()
             FocusRegion.SocialPanel -> socialRequester.requestFocus()
-            FocusRegion.Header -> false
         }
     }
 
     LaunchedEffect(Unit) {
-        delay(120)
+        delay(140)
         shelfRequester.requestFocus()
     }
 
@@ -131,44 +132,39 @@ fun TvReferenceRoot() {
                 .fillMaxSize()
                 .background(
                     Brush.verticalGradient(
-                        listOf(
-                            Color(0xFF31215D),
-                            Color(0xFF21143D),
-                            Color(0xFF130B24)
-                        )
+                        listOf(Color(0xFF342262), Color(0xFF21143F), Color(0xFF140C26))
                     )
                 )
                 .hazeSource(hazeState)
-                .padding(horizontal = overscanPadding, vertical = 20.dp)
+                .padding(horizontal = safePadding, vertical = 20.dp)
                 .onPreviewKeyEvent { event ->
-                    if (event.nativeKeyEvent.action != AndroidKeyEvent.ACTION_DOWN) {
-                        return@onPreviewKeyEvent false
-                    }
+                    if (event.nativeKeyEvent.action != AndroidKeyEvent.ACTION_DOWN) return@onPreviewKeyEvent false
                     when (event.nativeKeyEvent.keyCode) {
                         AndroidKeyEvent.KEYCODE_DPAD_UP -> when (focusedRegion) {
-                            FocusRegion.TopShelf -> focusRegion(FocusRegion.StreamA)
-                            FocusRegion.Ticker -> focusRegion(FocusRegion.TopShelf)
-                            FocusRegion.Dock -> focusRegion(FocusRegion.Ticker)
-                            FocusRegion.SocialPanel -> focusRegion(FocusRegion.TopShelf)
+                            FocusRegion.TopShelf, FocusRegion.StockWidget -> moveFocus(FocusRegion.StreamA)
+                            FocusRegion.Ticker -> moveFocus(FocusRegion.TopShelf)
+                            FocusRegion.Dock -> moveFocus(FocusRegion.Ticker)
+                            FocusRegion.SocialPanel -> moveFocus(FocusRegion.TopShelf)
                             else -> false
                         }
 
                         AndroidKeyEvent.KEYCODE_DPAD_DOWN -> when (focusedRegion) {
-                            FocusRegion.StreamA, FocusRegion.StreamB -> focusRegion(FocusRegion.TopShelf)
-                            FocusRegion.TopShelf -> focusRegion(FocusRegion.Ticker)
-                            FocusRegion.Ticker -> focusRegion(FocusRegion.Dock)
+                            FocusRegion.StreamA, FocusRegion.StreamB -> moveFocus(FocusRegion.TopShelf)
+                            FocusRegion.TopShelf, FocusRegion.StockWidget -> moveFocus(FocusRegion.Ticker)
+                            FocusRegion.Ticker -> moveFocus(FocusRegion.Dock)
                             else -> false
                         }
 
                         AndroidKeyEvent.KEYCODE_DPAD_LEFT -> when (focusedRegion) {
-                            FocusRegion.StreamB -> focusRegion(FocusRegion.StreamA)
-                            FocusRegion.SocialPanel -> focusRegion(FocusRegion.TopShelf)
+                            FocusRegion.StreamB -> moveFocus(FocusRegion.StreamA)
+                            FocusRegion.SocialPanel -> moveFocus(FocusRegion.TopShelf)
                             else -> false
                         }
 
                         AndroidKeyEvent.KEYCODE_DPAD_RIGHT -> when (focusedRegion) {
-                            FocusRegion.StreamA -> focusRegion(FocusRegion.StreamB)
-                            FocusRegion.TopShelf -> focusRegion(FocusRegion.SocialPanel)
+                            FocusRegion.StreamA -> moveFocus(FocusRegion.StreamB)
+                            FocusRegion.TopShelf -> moveFocus(FocusRegion.StockWidget)
+                            FocusRegion.StockWidget -> moveFocus(FocusRegion.SocialPanel)
                             else -> false
                         }
 
@@ -194,7 +190,9 @@ fun TvReferenceRoot() {
                     selectedTab = selectedTab,
                     onSelectedTab = { selectedTab = it },
                     shelfRequester = shelfRequester,
-                    onFocused = { focusedRegion = FocusRegion.TopShelf }
+                    stockRequester = stockRequester,
+                    onFocusedShelf = { focusedRegion = FocusRegion.TopShelf },
+                    onFocusedStock = { focusedRegion = FocusRegion.StockWidget }
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 NewsTicker(
@@ -221,13 +219,11 @@ fun TvReferenceRoot() {
                     .hazeEffect(hazeState)
                     .focusRequester(socialRequester)
                     .onFocusChanged {
-                        if (it.isFocused) {
-                            focusedRegion = FocusRegion.SocialPanel
-                        }
+                        if (it.isFocused) focusedRegion = FocusRegion.SocialPanel
                     }
                     .focusable(),
                 selectedProvider = selectedProvider,
-                    onSelectedProvider = { selectedProvider = it }
+                onSelectedProvider = { selectedProvider = it }
             )
         }
     }
@@ -241,14 +237,14 @@ private fun CompactHeader() {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("Reference TV", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+            Text("command center", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.width(20.dp))
-            listOf("Search", "Live", "Guide", "My Stuff").forEach { item ->
+            listOf("search", "live", "guide", "my stuff").forEach { item ->
                 Text(item, color = Color.White.copy(alpha = 0.86f), fontSize = 15.sp)
                 Spacer(modifier = Modifier.width(16.dp))
             }
         }
-        Text("8:15 PM", color = Color.White.copy(alpha = 0.82f), fontSize = 15.sp)
+        Text("8:15 pm", color = Color.White.copy(alpha = 0.82f), fontSize = 15.sp)
     }
 }
 
@@ -267,16 +263,16 @@ private fun DualStreamBand(
         StreamPane(
             modifier = Modifier.weight(1f),
             requester = streamARequester,
-            title = "Stream A · Live Game",
-            metadata = "Primary audio · 4K HDR",
+            title = "stream a · live game",
+            metadata = "primary audio · 4k hdr",
             progress = 0.62f,
             onFocused = { onFocusedRegion(FocusRegion.StreamA) }
         )
         StreamPane(
             modifier = Modifier.weight(1f),
             requester = streamBRequester,
-            title = "Stream B · Night Drive",
-            metadata = "Muted preview · Dolby Vision",
+            title = "stream b · night drive",
+            metadata = "muted preview · dolby vision",
             progress = 0.38f,
             onFocused = { onFocusedRegion(FocusRegion.StreamB) }
         )
@@ -293,50 +289,35 @@ private fun StreamPane(
     onFocused: () -> Unit
 ) {
     var focused by remember { mutableStateOf(false) }
-    val scale by animateFloatAsState(if (focused) 1.035f else 1f, label = "stream-scale")
-    Surface(
+    val scale by animateFloatAsState(if (focused) 1.045f else 1f, label = "stream-scale")
+    val glowColor = if (focused) Color(0x55BBAAFF) else Color.Transparent
+    Box(
         modifier = modifier
             .clip(RoundedCornerShape(20.dp))
             .scale(scale)
+            .zIndex(if (focused) 2f else 0f)
+            .background(Color(0x22101222))
             .border(
                 width = if (focused) 3.dp else 1.dp,
-                color = if (focused) Color(0xFFAE9BFF) else Color.White.copy(alpha = 0.24f),
+                color = if (focused) Color(0xFFBCAFFF) else Color.White.copy(alpha = 0.2f),
                 shape = RoundedCornerShape(20.dp)
             )
+            .background(glowColor)
             .focusRequester(requester)
             .onFocusChanged {
                 focused = it.isFocused
                 if (it.isFocused) onFocused()
             }
             .focusable()
-            .background(
-                Brush.verticalGradient(
-                    listOf(
-                        Color(0x553A2A70),
-                        Color(0xAA0A071A)
-                    )
-                )
-            )
-            .padding(18.dp),
-        shape = RoundedCornerShape(20.dp),
-        color = Color.Transparent
+            .padding(18.dp)
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(
-                text = title,
-                color = Color.White,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 20.sp
-            )
+            Text(text = title, color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 20.sp)
             Column {
-                Text(
-                    text = metadata,
-                    color = Color.White.copy(alpha = 0.88f),
-                    fontSize = 14.sp
-                )
+                Text(text = metadata, color = Color.White.copy(alpha = 0.88f), fontSize = 14.sp)
                 Spacer(modifier = Modifier.height(10.dp))
                 Box(
                     modifier = Modifier
@@ -350,7 +331,7 @@ private fun StreamPane(
                             .fillMaxWidth(progress)
                             .height(8.dp)
                             .clip(RoundedCornerShape(100))
-                            .background(Color(0xFFEBD8FF))
+                            .background(Color(0xFFEAD9FF))
                     )
                 }
             }
@@ -364,19 +345,19 @@ private fun TopShelfRail(
     selectedTab: Int,
     onSelectedTab: (Int) -> Unit,
     shelfRequester: FocusRequester,
-    onFocused: () -> Unit
+    stockRequester: FocusRequester,
+    onFocusedShelf: () -> Unit,
+    onFocusedStock: () -> Unit
 ) {
-    val tabs = listOf("For You", "Live", "Trending", "Sports", "Movies")
-    Column(
-        modifier = Modifier.fillMaxWidth()
-    ) {
+    val tabs = listOf("for you", "live", "trending", "sports", "movies")
+    Column(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Top Shelf", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
+                Text("top shelf", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
                 Spacer(modifier = Modifier.width(16.dp))
                 tabs.forEachIndexed { index, tab ->
                     Text(
@@ -387,40 +368,54 @@ private fun TopShelfRail(
                             .clip(RoundedCornerShape(12.dp))
                             .background(if (selectedTab == index) Color.White.copy(alpha = 0.16f) else Color.Transparent)
                             .padding(horizontal = 10.dp, vertical = 4.dp)
+                            .focusable()
+                            .onFocusChanged { if (it.isFocused) onSelectedTab(index) }
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                 }
             }
-            Text(
-                "NASDAQ +0.73%  S&P +0.42%  AAPL +1.18%",
-                color = Color(0xFFD5FFC7),
-                fontSize = 13.sp
+            StockWidget(
+                stockRequester = stockRequester,
+                onFocused = onFocusedStock
             )
         }
         Spacer(modifier = Modifier.height(10.dp))
-        LazyRow(
+        TvLazyRow(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            items(
-                items = cards,
-                key = { it.id },
-                contentType = { "topshelf-card" }
-            ) { card ->
+            items(items = cards, key = { it.id }) { card ->
                 TopShelfCardItem(
                     card = card,
-                    modifier = Modifier.then(
-                        if (card.id == cards.first().id) {
-                            Modifier.focusRequester(shelfRequester)
-                        } else {
-                            Modifier
-                        }
-                    ),
-                    onFocused = onFocused
+                    modifier = if (card.id == cards.first().id) Modifier.focusRequester(shelfRequester) else Modifier,
+                    onFocused = onFocusedShelf
                 )
             }
         }
     }
+}
+
+@Composable
+private fun StockWidget(
+    stockRequester: FocusRequester,
+    onFocused: () -> Unit
+) {
+    var focused by remember { mutableStateOf(false) }
+    Text(
+        text = "nasdaq +0.73%   s&p +0.42%   aapl +1.18%",
+        color = if (focused) Color(0xFFE8FFD9) else Color(0xFFD0F7C2),
+        fontSize = 13.sp,
+        modifier = Modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color(0x552C3B2C))
+            .padding(horizontal = 10.dp, vertical = 6.dp)
+            .focusRequester(stockRequester)
+            .onFocusChanged {
+                focused = it.isFocused
+                if (it.isFocused) onFocused()
+            }
+            .focusable()
+    )
 }
 
 @Composable
@@ -429,9 +424,10 @@ private fun TopShelfCardItem(card: TopShelfCard, modifier: Modifier, onFocused: 
     val scale by animateFloatAsState(if (focused) 1.06f else 1f, label = "card-scale")
     Box(
         modifier = modifier
-            .width(210.dp)
-            .height(136.dp)
+            .width(220.dp)
+            .height(140.dp)
             .scale(scale)
+            .zIndex(if (focused) 1f else 0f)
             .clip(RoundedCornerShape(16.dp))
             .border(
                 width = if (focused) 2.dp else 1.dp,
@@ -454,13 +450,7 @@ private fun TopShelfCardItem(card: TopShelfCard, modifier: Modifier, onFocused: 
                 fontWeight = FontWeight.Bold
             )
             Column {
-                Text(
-                    text = card.title,
-                    color = Color.White,
-                    fontSize = 15.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+                Text(text = card.title, color = Color.White, fontSize = 15.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Text(
                     text = card.metadata,
                     color = Color.White.copy(alpha = 0.74f),
@@ -480,14 +470,13 @@ private fun NewsTicker(
     onFocused: () -> Unit,
     onBlurred: () -> Unit
 ) {
-    val headlines = "NEWS  Markets rally after inflation report • Space launch successful • Local weather alert • Streaming rights update • Semi finals tonight"
+    val headlines =
+        "news  markets rally after inflation report • storm warnings issued • space launch successful • local headlines updated"
     val tickerTransition = rememberInfiniteTransition(label = "ticker")
     val tickerOffset by tickerTransition.animateFloat(
         initialValue = 0f,
         targetValue = -1200f,
-            animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 20000, easing = LinearEasing)
-        ),
+        animationSpec = infiniteRepeatable(animation = tween(durationMillis = 20000, easing = LinearEasing)),
         label = "ticker-offset"
     )
     var focused by remember { mutableStateOf(false) }
@@ -521,7 +510,7 @@ private fun MiniDock(
     dockRequester: FocusRequester,
     onFocused: () -> Unit
 ) {
-    val entries = listOf("Home", "Live TV", "Guide", "Apps", "Sports", "My Stuff")
+    val entries = listOf("home", "live tv", "guide", "apps", "sports", "my stuff")
     var focused by remember { mutableStateOf(false) }
     Row(
         modifier = Modifier
@@ -540,11 +529,7 @@ private fun MiniDock(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         entries.forEach { entry ->
-            Text(
-                text = entry,
-                color = if (focused) Color.White else Color.White.copy(alpha = 0.74f),
-                fontSize = 14.sp
-            )
+            Text(text = entry, color = if (focused) Color.White else Color.White.copy(alpha = 0.74f), fontSize = 14.sp)
         }
     }
 }
@@ -555,25 +540,19 @@ private fun SocialPanel(
     selectedProvider: SocialProviderClient,
     onSelectedProvider: (SocialProviderClient) -> Unit
 ) {
-    val scope = rememberCoroutineScope()
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(24.dp))
             .background(Color(0x6620123A))
             .padding(14.dp)
     ) {
-        Text(
-            "Social",
-            color = Color.White,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.SemiBold
-        )
+        Text("social", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
         Spacer(modifier = Modifier.height(10.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             SocialProviders.all.forEach { provider ->
                 val active = selectedProvider == provider
                 Text(
-                    text = provider.providerName,
+                    text = provider.providerName.lowercase(),
                     color = if (active) Color.White else Color.White.copy(alpha = 0.64f),
                     fontSize = 12.sp,
                     modifier = Modifier
@@ -581,11 +560,7 @@ private fun SocialPanel(
                         .background(if (active) Color.White.copy(alpha = 0.16f) else Color.Transparent)
                         .padding(horizontal = 8.dp, vertical = 4.dp)
                         .focusable()
-                        .onFocusChanged {
-                            if (it.isFocused) {
-                                scope.launch { onSelectedProvider(provider) }
-                            }
-                        }
+                        .onFocusChanged { if (it.isFocused) onSelectedProvider(provider) }
                 )
             }
         }
@@ -599,7 +574,7 @@ private fun SocialPanel(
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "Native integration hook: replace web feed with official SDK provider when credentials are available.",
+            text = "native integration hook available. swap to provider sdk when product credentials and policy reviews are ready.",
             color = Color.White.copy(alpha = 0.72f),
             fontSize = 11.sp,
             lineHeight = 14.sp
@@ -624,9 +599,7 @@ private fun SocialWebView(
             }
         },
         update = { view ->
-            if (view.url != url) {
-                view.loadUrl(url)
-            }
+            if (view.url != url) view.loadUrl(url)
         }
     )
 }

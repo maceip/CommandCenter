@@ -108,6 +108,7 @@ dependencies {
     implementation "androidx.compose.material3:material3:$compose_material3_version"
     implementation "androidx.lifecycle:lifecycle-runtime-compose:2.8.7"
     implementation "androidx.tv:tv-foundation:$tv_foundation_version"
+    implementation "androidx.tv:tv-material:$tv_foundation_version"
     implementation "dev.chrisbanes.haze:haze:$haze_version"
     implementation "com.squareup.picasso:picasso:2.8"
 
