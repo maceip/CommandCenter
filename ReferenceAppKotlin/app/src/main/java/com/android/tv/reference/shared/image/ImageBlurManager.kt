@@ -59,7 +59,7 @@ class ImageBlurManager(context: Context) {
         blurScript.setRadius(radius)
         blurScript.forEach(outputAllocation)
         val outputBitmap =
-            Bitmap.createBitmap(inputBitmap.width, inputBitmap.height, inputBitmap.config)
+            Bitmap.createBitmap(inputBitmap.width, inputBitmap.height, inputBitmap.config ?: Bitmap.Config.ARGB_8888)
         outputAllocation.copyTo(outputBitmap)
         inputAllocation.destroy()
         outputAllocation.destroy()

@@ -1,33 +1,40 @@
-Android TV Samples Repository
-=============================
+Android TV Reference App
+========================
 
-This repository contains a set of individual Android TV projects to help you get started writing Android TV apps.
+This repository contains **ReferenceAppKotlin**, a sample Android TV app that demonstrates how to build a video playback experience optimized for Android TV and Google TV.
 
-- AccessibilityDemo: A Java sample showing how to support accessibility on TVs
-- ClassicsKotlin: A modern Android TV app using Kotlin to show classic videos
-- TvMaterialCatalog: A jetpack-compose app built using Kotlin that demonstrates the usages of components from [Compose for TV libraries](https://developer.android.com/jetpack/androidx/releases/tv) in isolation.
-- JetStreamCompose: A jetpack-compose app using Kotlin that demonstrates the usage of components from the [Compose for TV libraries](https://developer.android.com/jetpack/androidx/releases/tv)
-- Leanback: A Java app that demonstrates a basic Android TV app
-- Leanback Showcase: A Java app that demonstrates many different parts of the Leanback SDK and how to customize them
-- ReferenceAppKotlin: Our newest sample that demonstrates a variety of Android TV and Google TV integrations in Kotlin
+## Features
+
+- Leanback templates for browse and playback
+- Remote video playback with ExoPlayer
+- MediaSession support for playback controls
+- Deep linking for Assistant, Cast, and home screen programs
+- Home screen channel creation
+- Watch Next / continue watching
+- Cast Connect receiver support
+
+See [ReferenceAppKotlin/README.md](ReferenceAppKotlin/README.md) for full documentation, including Firebase setup, Cast Connect configuration, and app architecture.
 
 ## Getting Started
 
-- Clone this repo:
+Clone this repo:
 
 ```sh
 git clone https://github.com/android/tv-samples.git
+cd tv-samples/ReferenceAppKotlin
 ```
 
-- Open the specific project(s) you're interested in within [Android Studio][studio]
+Open the `ReferenceAppKotlin` project in [Android Studio](https://developer.android.com/tools/studio/index.html), or build and run it with the [Android CLI](https://developer.android.com/tools/agents/android-cli):
 
-Need more information about getting started with Android TV? Check the [official getting started guide][getting-started].
+```sh
+cd ReferenceAppKotlin
+android describe --project_dir=.
+android run --apks=app/build/outputs/apk/debug/app-debug.apk --activity=.MainActivity
+```
 
-## Additional Resouroces
+Then compile and deploy to an Android TV emulator or device.
 
-- [Android TV Introduction](http://www.android.com/tv/)
-- [Android TV Developer Documentation](http://developer.android.com/tv)
-- [Android TV Apps in Google Play Store][store-apps]
+Need more information about getting started with Android TV? Check the [official getting started guide](https://developer.android.com/training/tv/start/start.html).
 
 ## Support
 
@@ -37,9 +44,4 @@ If you need additional help, our community might be able to help.
 
 ## License
 
-See the [LICENSE file][license] for details.
-
-[studio]: https://developer.android.com/tools/studio/index.html
-[getting-started]: https://developer.android.com/training/tv/start/start.html
-[store-apps]: https://play.google.com/store/apps/collection/promotion_3000e26_androidtv_apps_all
-[license]: LICENSE
+See the [LICENSE file](LICENSE) for details.

@@ -42,8 +42,8 @@ import timber.log.Timber
 class BrowseFragment : BrowseSupportFragment(), Target {
 
     companion object {
-        private const val BACKGROUND_UPDATE_DELAY_MILLIS = 500L
-        private const val BACKGROUND_RESOURCE_ID = R.drawable.image_placeholder
+        private val BACKGROUND_UPDATE_DELAY_MILLIS = 500L
+        private val BACKGROUND_RESOURCE_ID = R.drawable.image_placeholder
     }
 
     private lateinit var viewModel: BrowseViewModel

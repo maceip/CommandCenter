@@ -18,7 +18,7 @@ package com.android.tv.reference.browse
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Transformations
+import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
 import com.android.tv.reference.auth.UserManager
 import com.android.tv.reference.repository.VideoRepository
@@ -32,7 +32,7 @@ class BrowseViewModel(application: Application) : AndroidViewModel(application) 
     private val userManager = UserManager.getInstance(application.applicationContext)
     val browseContent = MutableLiveData<List<VideoGroup>>()
     val customMenuItems = MutableLiveData<List<BrowseCustomMenu>>(listOf())
-    val isSignedIn = Transformations.map(userManager.userInfo) { it != null }
+    val isSignedIn = userManager.userInfo.map { it != null }
 
     init {
         browseContent.value = getVideoGroupList(videoRepository)

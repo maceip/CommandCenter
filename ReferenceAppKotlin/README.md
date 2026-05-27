@@ -17,16 +17,35 @@ requires additional work detailed below.
 
 ## Getting Started
 
-To open this sample in Android Studio, begin by cloning the repository with git:
+Clone this repo:
 
 ```sh
 git clone https://github.com/android/tv-samples.git
+cd tv-samples/ReferenceAppKotlin
 ```
 
-This repository contains multiple samples. To run this one, you need to:
+### Build and run with the Android CLI
 
-- Open the ReferenceAppKotlin project in [Android Studio][studio].
-- Compile and deploy to your Android TV emulator or device (such as an ADT-3).
+This project uses the [Android CLI](https://developer.android.com/tools/agents/android-cli) (`android`) for building and deployment:
+
+```sh
+# Analyze the project and build debug artifacts
+android describe --project_dir=.
+
+# Deploy to a connected device or running emulator
+android run --apks=app/build/outputs/apk/debug/app-debug.apk --activity=.MainActivity
+```
+
+To run on Android TV, create and start a TV emulator, then deploy:
+
+```sh
+android sdk install system-images/android-30/android-tv/x86
+echo no | avdmanager create avd -n TvReferenceApp -k "system-images;android-30;android-tv;x86" -d "tv_1080p"
+android emulator start TvReferenceApp
+android run --apks=app/build/outputs/apk/debug/app-debug.apk --activity=.MainActivity
+```
+
+You can also open the project in [Android Studio][studio] and deploy from there.
 
 See the [official getting started guide][getting-started] for more info.
 
@@ -119,7 +138,7 @@ with the ReferenceAppKotlin sample and include details that allow us to reproduc
 the issue is causing a crash, including the stack trace will help a lot.
 
 Patches are encouraged and may be submitted by forking this project and submitting a pull request
-through GitHub. Please see [CONTRIBUTING.md](../CONTRIBUTING.md) for more details.
+through GitHub. Please see [CONTRIBUTING.md](../../CONTRIBUTING.md) for more details.
 
 ## Media
 

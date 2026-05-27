@@ -79,7 +79,7 @@ class UserManager(
     }
 
     companion object {
-        const val signInFragmentId = R.id.action_global_signInFragment
+        val signInFragmentId = R.id.action_global_signInFragment
 
         @Volatile
         private var INSTANCE: UserManager? = null

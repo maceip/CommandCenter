@@ -72,7 +72,7 @@ class OverlayImageTransformation(
             canvas = Canvas(mutableBitmap)
         } else {
             // Not mutable, so create a copy and recycle the source
-            mutableBitmap = Bitmap.createBitmap(source.width, source.height, source.config)
+            mutableBitmap = Bitmap.createBitmap(source.width, source.height, source.config ?: Bitmap.Config.ARGB_8888)
             canvas = Canvas(mutableBitmap)
             canvas.drawBitmap(source, 0f, 0f, paint)
             source.recycle()

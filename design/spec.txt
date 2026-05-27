@@ -1,0 +1,682 @@
+Modern Top Shelf: Persistent Dual-Stream Playback Spec
+1. Product intent
+
+Top Shelf should no longer behave as a pre-playback discovery surface that disappears once content starts. Modern TV usage has changed: screens are larger, users often sit closer than the old 10-foot assumption, and people expect to browse, monitor, multitask, and switch content without losing the thing they are watching.
+
+The updated Top Shelf experience is a persistent content layer that remains available while playback continues. It supports two simultaneous video streams, compact discovery rails, utility widgets, a live news ticker, stock market glanceability, voice control, and fast remote navigation.
+
+The attached design becomes the starting point: a purple entertainment canvas with large media previews and horizontal content rows. The new version compresses the wasted vertical space, converts the oversized hero image into active playback, and keeps Top Shelf content visible during playback.
+
+2. Core design change
+Previous model
+
+The legacy Top Shelf model assumes:
+
+Top Shelf is mainly for selection and preview.
+Playback takes over the screen.
+Discovery content disappears when video starts.
+Large padding is acceptable because the user is far from the screen.
+The Dock and shelf are mostly launch surfaces, not active in-playback controls.
+New model
+
+The modern model assumes:
+
+Playback and browsing coexist.
+Two streams can be visible at once.
+Top Shelf remains persistent while video is playing.
+The layout is denser because large screens and closer viewing make more information usable.
+The remote, voice, and focus model must support multitasking without forcing users into fullscreen or back out of playback.
+3. Adaptation from the attached design
+
+The attached design currently has this structure:
+
+┌─────────────────────────────────────────────┐
+│ Large panoramic hero image                  │
+├─────────────────────────────────────────────┤
+│ Top Albums                                  │
+│ [Album chip] [Album chip] [Album chip]      │
+├─────────────────────────────────────────────┤
+│ Top Songs                                   │
+│ [Large card] [Large card] [Large card]      │
+└─────────────────────────────────────────────┘
+
+The adapted version should become:
+
+┌─────────────────────────────────────────────────────────────┐
+│ Compact header / app controls / search / profile             │
+├───────────────────────────────┬─────────────────────────────┤
+│ Stream A                      │ Stream B                    │
+│ Live / VOD playback           │ Live / VOD playback         │
+│ Title, metadata, controls     │ Title, metadata, controls   │
+├─────────────────────────────────────────────────────────────┤
+│ Persistent Top Shelf header                                   │
+│ Tabs / For You / Live / Trending / Sports / Movies / Stocks   │
+├─────────────────────────────────────────────────────────────┤
+│ [Card] [Card] [Card] [Card] [Card] [Card] [Card]              │
+├─────────────────────────────────────────────────────────────┤
+│ NEWS ticker: headline • headline • market alert • headline    │
+├─────────────────────────────────────────────────────────────┤
+│ Minimized Dock / Home / Live TV / Guide / Apps / My Stuff     │
+└─────────────────────────────────────────────────────────────┘
+
+The purple background can remain, but the spacing should be tighter. The large hero image in the reference becomes the dual-stream playback zone. The “Top Albums” and “Top Songs” rails become the persistent Top Shelf area, with one primary card rail visible during playback and optional secondary rows available by scrolling or opening the shelf.
+
+4. Layout specification
+Baseline canvas
+
+Design for a 16:9 TV canvas.
+
+Primary reference size:
+
+1920 × 1080
+
+The layout must also scale cleanly to:
+
+2560 × 1440
+3840 × 2160
+7680 × 4320
+
+The interface should not simply scale up padding on larger screens. Larger screens should support either more visible content, higher-quality media, or slightly larger text — not empty space.
+
+Recommended vertical layout
+┌─────────────────────────────────────────────────────────┐
+│ Header / utility chrome                 48–56 px         │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│ Dual-stream playback zone              600–680 px       │
+│                                                         │
+├─────────────────────────────────────────────────────────┤
+│ Persistent Top Shelf                    210–260 px       │
+├─────────────────────────────────────────────────────────┤
+│ News ticker                              32–44 px        │
+├─────────────────────────────────────────────────────────┤
+│ Minimized Dock                           44–56 px        │
+└─────────────────────────────────────────────────────────┘
+
+The dual-stream playback zone should take the majority of the screen. The Top Shelf must remain visible but compact. The Dock should be minimized unless actively focused.
+
+Spacing rules
+
+Use compact density by default.
+
+Element	Target spacing
+Outer screen margin	20–24 px
+Stream gutter	12–16 px
+Card gutter	10–14 px
+Row-to-row spacing	12–20 px
+Header height	48–56 px
+Playback control band	56–72 px
+News ticker height	32–44 px
+Minimized Dock height	44–56 px
+
+Avoid the legacy oversized safe zones. The attached reference has generous padding around the hero and rows; reduce that padding and reclaim the space for active video, visible metadata, and more cards.
+
+5. Primary screen anatomy
+5.1 Header
+
+The header is a compact utility strip, not a large navigation bar.
+
+It may include:
+
+App logo / active profile / time / search / voice / notifications / settings
+
+Recommended height:
+
+48–56 px
+
+The header should be translucent or visually lightweight. It should not compete with video.
+
+Example:
+
+┌──────────────────────────────────────────────────────────┐
+│ App Name   Search   Live   Guide   My Stuff      8:15 PM │
+└──────────────────────────────────────────────────────────┘
+5.2 Dual-stream playback zone
+
+The dual-stream area contains two simultaneous video views.
+
+┌────────────────────────────┬────────────────────────────┐
+│ Stream A                   │ Stream B                   │
+│                            │                            │
+│ Title                      │ Title                      │
+│ Metadata                   │ Metadata                   │
+│ Progress + controls        │ Progress + controls        │
+└────────────────────────────┴────────────────────────────┘
+
+Each stream must include:
+
+Video surface
+Content title
+Live/VOD indicator
+Metadata line
+Progress bar, when applicable
+Compact control row
+Audio state
+Caption state
+Focus ring
+Stream role indicator
+
+Example stream roles:
+
+Primary audio
+Muted preview
+Live game
+Resume content
+Pinned stream
+
+Only one stream should output audio by default. The second stream should be muted unless the user explicitly enables dual-audio or switches the active stream.
+
+5.3 Stream sizing
+
+Default split:
+
+50 / 50
+
+Alternative modes:
+
+70 / 30 emphasis mode
+Picture-in-picture mode
+Fullscreen temporary mode
+Swap left/right
+Stacked mode for portrait or narrow contexts
+
+The user should be able to promote either stream without losing the persistent Top Shelf.
+
+6. Persistent Top Shelf
+
+The Top Shelf remains on screen while content is playing.
+
+It is no longer just a launcher or preview row. It is an active browsing, switching, and utility surface.
+
+Top Shelf structure
+┌────────────────────────────────────────────────────────────┐
+│ Top Shelf   For You   Trending   Live   Sports   Movies    │
+│                                      NASDAQ  S&P  AAPL      │
+├────────────────────────────────────────────────────────────┤
+│ [Card] [Card] [Card] [Card] [Card] [Card] [Card]            │
+└────────────────────────────────────────────────────────────┘
+
+The shelf includes:
+
+Section title
+Filter tabs
+Content cards
+Stock market widget
+Optional status badges
+Focusable card rail
+Queue and stream-switching actions
+
+The shelf should use the attached design’s horizontal card language, but cards should be more compact and information-dense.
+
+Top Shelf card types
+
+Cards may represent:
+
+Continue watching
+Live events
+Recommended shows
+Sports games
+Music videos
+Albums
+News clips
+Recently viewed content
+Apps or channels
+Queue items
+“Watch with Stream B” items
+
+Each card should support one or more actions:
+
+Play in Stream A
+Play in Stream B
+Replace focused stream
+Open details
+Add to queue
+Pin to Top Shelf
+More like this
+Hide / Not interested
+Card anatomy
+┌────────────────────────┐
+│ Thumbnail              │
+│ LIVE / NEW / RESUME    │
+├────────────────────────┤
+│ Title                  │
+│ Metadata               │
+└────────────────────────┘
+
+For compact cards:
+
+Width: 180–240 px
+Height: 110–150 px
+
+For focused cards:
+
+Scale: +4% to +7%
+Focus ring: visible but not oversized
+Metadata expansion: allowed, but should not push layout
+7. Stock market widget
+
+A compact stock widget should appear inside the Top Shelf header or as a right-aligned utility module.
+
+Example:
+
+NASDAQ ▲ 0.73%   S&P 500 ▲ 0.42%   AAPL ▲ 1.18%
+
+The widget should support:
+
+3–5 default tickers
+Positive/negative/neutral state
+Market open/closed state
+User-customized watchlist
+Remote focus for expanded details
+Voice query support
+
+Focused state:
+
+Press Select on stock widget → opens compact market drawer
+Long press → edit watchlist
+Voice → “Show me Apple stock”
+
+The widget should never visually overpower playback. It is glanceable, not a full finance dashboard.
+
+8. News ticker
+
+A live news ticker should run below the Top Shelf card rail and above the minimized Dock.
+
+Example:
+
+NEWS  Markets rally after inflation report • Storm warnings issued • Space launch successful • Local headlines updated
+
+Recommended height:
+
+32–44 px
+
+Behavior:
+
+Ticker scrolls horizontally.
+Ticker pauses when focused.
+Ticker can be expanded into a compact news drawer.
+Ticker must respect reduced motion settings.
+Ticker should never cover playback controls.
+Headlines should be short and scannable.
+Breaking news can temporarily increase emphasis but should not hijack the screen.
+
+Remote actions:
+
+Focus ticker + Select: open headline
+Focus ticker + Play/Pause: pause ticker motion
+Focus ticker + Right/Left: browse headline by headline
+Back: collapse ticker details
+
+Voice actions:
+
+“Open that headline”
+“Show more news”
+“Hide the ticker”
+“Pause the ticker”
+“What’s the latest news?”
+9. Minimized Dock
+
+The Dock should remain available but compact.
+
+┌──────────────────────────────────────────────────────┐
+│ Home   Live TV   Guide   Movies   Shows   Sports     │
+└──────────────────────────────────────────────────────┘
+
+Recommended height:
+
+44–56 px
+
+Default behavior:
+
+Dock is minimized during playback.
+Dock appears fully when focused.
+Dock can be invoked by pressing Down from the ticker or a dedicated remote/menu gesture.
+Dock should not force playback to stop.
+Selecting an app may optionally preserve the active stream in a small pinned mode, depending on system policy.
+10. Interaction model
+Focus hierarchy
+
+Default focus should depend on context.
+
+When playback starts:
+
+Primary focus: active stream controls
+Secondary focus: Top Shelf first card
+Tertiary focus: news ticker / Dock
+
+When browsing from the home state:
+
+Primary focus: first Top Shelf card
+Secondary focus: stream preview
+Tertiary focus: Dock
+
+Focus movement:
+
+Up from Top Shelf → stream controls
+Down from stream controls → Top Shelf
+Down from Top Shelf → news ticker
+Down from ticker → Dock
+Left/Right in stream zone → switch between Stream A and Stream B
+Left/Right in shelf → move across cards
+Select on card → open quick actions
+Play/Pause on card → play in active stream
+Long Select on card → open action menu
+Back → close overlay / collapse drawer / return focus
+
+The user should never lose video simply because they browse.
+
+Remote control behavior
+Directional remote
+Remote input	Behavior
+Left / Right on streams	Move focus between Stream A and Stream B
+Up / Down on streams	Move between controls, shelf, ticker, Dock
+Select on stream	Show or hide compact controls
+Play/Pause	Play or pause focused stream
+Long Play/Pause	Switch active audio stream
+Select on Top Shelf card	Open quick action menu
+Play/Pause on Top Shelf card	Play card in active stream
+Long Select on Top Shelf card	Open details drawer
+Back	Close current overlay; preserve playback
+Menu/Home	Move to Dock or system home, depending on platform
+Swipe or touch remote
+
+For remotes with a touch surface:
+
+Gesture	Behavior
+Horizontal swipe on stream	Move focus between streams or scrub when controls are active
+Vertical swipe	Move between playback, shelf, ticker, Dock
+Slow horizontal pan on Top Shelf	Scroll cards
+Fast flick on Top Shelf	Accelerated card scrolling
+Circular gesture on focused card	Optional parallax or preview animation
+Swipe down on active stream	Reveal audio, captions, source controls
+
+The layout should avoid fragile gestures. Every touch interaction must have a directional remote equivalent.
+
+11. Stream interaction
+Active stream concept
+
+One stream is always the active stream.
+
+The active stream controls:
+
+Audio output
+Play/Pause button behavior
+Captions shortcut
+Scrubbing shortcut
+Voice command default target
+
+The inactive stream may keep playing silently.
+
+Visual states:
+
+Active stream: stronger focus ring, audio badge, full controls
+Inactive stream: muted badge, reduced controls, still visible
+Stream actions
+
+Each stream supports:
+
+Play / Pause
+Resume
+Restart
+Scrub
+Mute / unmute
+Enable captions
+Change audio language
+Make primary
+Swap sides
+Fullscreen temporarily
+Pin stream
+Close stream
+Replace with Top Shelf item
+
+When a user selects a Top Shelf item, the system should ask or infer where to play it:
+
+Play in Stream A
+Play in Stream B
+Replace active stream
+Open details
+Add to queue
+
+For faster interaction, pressing Play/Pause on a Top Shelf card should immediately play in the active stream.
+
+12. Voice interaction
+
+Voice is a first-class input method, not an afterthought.
+
+The system should support voice commands for playback, layout, discovery, utilities, and navigation.
+
+Playback voice commands
+
+Examples:
+
+“Play this”
+“Pause the left stream”
+“Mute the right stream”
+“Switch audio to the game”
+“Make the movie fullscreen”
+“Swap the two streams”
+“Close the right stream”
+“Turn on captions for the left stream”
+“Rewind the right stream 30 seconds”
+“Jump to live”
+Top Shelf voice commands
+
+Examples:
+
+“Show Top Shelf”
+“Hide Top Shelf”
+“Show trending”
+“Show live sports”
+“Play the second card in the right stream”
+“Add this to my list”
+“Open more info”
+“Find more like this”
+“Show my continue watching”
+News and stocks voice commands
+
+Examples:
+
+“What’s the latest news?”
+“Open that headline”
+“Pause the news ticker”
+“Hide the ticker”
+“How is NASDAQ doing?”
+“Show my stocks”
+“Add Apple to my watchlist”
+“Remove Tesla from my watchlist”
+Voice disambiguation
+
+When a command is ambiguous, the system should ask a short clarification.
+
+Example:
+
+User says:
+
+“Play that”
+
+If focus is on a Top Shelf card:
+
+“Play in the left stream or right stream?”
+
+If one stream is active:
+
+Play in active stream by default.
+
+Avoid long voice dialogs. On TV, clarification should be short, visual, and dismissible by remote.
+
+13. Details drawer
+
+Selecting More Info should not replace the whole screen.
+
+Use a compact drawer that slides over part of the Top Shelf or side of the stream area.
+
+┌──────────────────────────────┐
+│ Title                        │
+│ Description                  │
+│ Cast / metadata              │
+│ [Play in A] [Play in B]      │
+│ [Add to List] [More Like]    │
+└──────────────────────────────┘
+
+Recommended behavior:
+
+Video continues playing behind the drawer.
+Drawer should not cover both streams entirely.
+Back closes drawer and restores prior focus.
+Voice can read or summarize the drawer.
+Details can be expanded to fullscreen only when explicitly requested.
+14. Content rules
+Feature content that is useful during playback
+
+Top Shelf should prioritize:
+
+Continue watching
+Live events related to current playback
+Scores, highlights, and news
+Personalized recommendations
+Recently used apps or channels
+Quick switches between content types
+“Because you’re watching…” recommendations
+
+Avoid:
+
+Overly large static promotional panels
+Ads that interrupt playback
+Cards that require full app launch before showing anything useful
+Rows with only decorative content
+Prices as the dominant card metadata
+Dual-stream recommendations
+
+When two streams are active, Top Shelf recommendations should adapt.
+
+Examples:
+
+When Stream A is sports and Stream B is a show:
+
+Cards may include: live scores, other games, next episode, related news, highlights.
+
+When both streams are live events:
+
+Cards may include: alternate camera angles, other live channels, stats, key moments.
+
+When one stream is music or ambient content:
+
+Cards may include: albums, playlists, videos, artist radio, lyrics view.
+15. Visual design direction
+
+The attached design’s purple backdrop can remain, but it should evolve from a large, airy browsing screen into a compact, layered playback system.
+
+Keep from the attached design
+Soft purple background
+Rounded card language
+Horizontal rails
+Media-forward thumbnails
+Calm entertainment feel
+Large imagery
+Change from the attached design
+Reduce vertical gaps.
+Replace the hero image with two active video panes.
+Keep Top Shelf visible during playback.
+Convert album/song rows into compact, focusable cards.
+Add utility widgets without making the UI feel like a dashboard.
+Minimize the Dock.
+Make the layout feel designed for 65–85 inch screens, not an old 10-foot-only TV model.
+16. Compact visual wireframe
+┌────────────────────────────────────────────────────────────────────────────┐
+│ App / Search / Live / Guide / My Stuff                         8:15 PM     │
+├──────────────────────────────────┬─────────────────────────────────────────┤
+│                                  │                                         │
+│ STREAM A                         │ STREAM B                                │
+│ Live game / movie / show          │ Live game / movie / show                │
+│                                  │                                         │
+│ Title                             │ Title                                   │
+│ Metadata                          │ Metadata                                │
+│ ━━━━━━━●────────  Play Info CC     │ ━━━━━●────────── Play Info CC           │
+├────────────────────────────────────────────────────────────────────────────┤
+│ ★ Top Shelf   For You   Live   Trending   Sports   Movies      Stocks ▲    │
+├────────────────────────────────────────────────────────────────────────────┤
+│ [Resume] [Live Game] [Episode] [Album] [News Clip] [Movie] [Channel]        │
+├────────────────────────────────────────────────────────────────────────────┤
+│ NEWS  Headline one • Headline two • Market update • Weather alert           │
+├────────────────────────────────────────────────────────────────────────────┤
+│ Home       Live TV       Guide       Apps       Sports       My Stuff       │
+└────────────────────────────────────────────────────────────────────────────┘
+17. Accessibility
+
+The compact layout must still be accessible.
+
+Requirements:
+
+Focus state must be obvious at a glance.
+Text must support larger accessibility sizes.
+News ticker must pause when focused.
+News ticker must respect reduced motion.
+Stock changes must not rely only on red/green color.
+Captions must be independently controllable per stream.
+VoiceOver or screen reader should announce active stream, focused region, and available actions.
+Audio focus must be clear: “Left stream audio active” or “Right stream audio active.”
+Users must be able to disable dual-stream mode.
+Users must be able to hide news ticker and stocks.
+High contrast mode must preserve hierarchy without relying on background blur.
+18. Performance and fallback behavior
+
+Dual-stream playback is resource-intensive. The system needs graceful fallbacks.
+
+Preferred
+Two live video streams active
+One audio stream active
+Top Shelf visible
+Ticker and stocks updating
+If device performance is limited
+Primary stream plays normally
+Secondary stream uses lower bitrate or lower frame rate
+Top Shelf remains visible
+Ticker updates less frequently
+If dual playback is unavailable
+Primary stream plays
+Secondary stream becomes live thumbnail / preview card
+Top Shelf remains visible
+User sees “Preview only” state
+If data is unavailable
+Stocks hidden or replaced by “Markets unavailable”
+Ticker hidden or replaced by static latest headline
+Cards fall back to continue-watching content
+
+Playback should always be protected. Utilities should degrade first.
+
+19. Required states
+
+The design should cover these states:
+
+No playback, browsing only
+Single stream playback + Top Shelf
+Dual stream playback + Top Shelf
+Focused left stream
+Focused right stream
+Focused Top Shelf card
+Focused stock widget
+Focused news ticker
+Focused Dock
+Details drawer open
+Voice listening
+Voice clarification
+Network degraded
+Ticker hidden
+Stocks hidden
+Accessibility large text
+Reduced motion
+20. Acceptance criteria
+
+The updated design is successful when:
+
+Two videos can be visible at once.
+Top Shelf remains visible during playback.
+The user can browse Top Shelf without stopping or hiding video.
+The user can choose whether a Top Shelf item plays in Stream A or Stream B.
+The news ticker and stock widget are visible but not dominant.
+The Dock is available without taking excessive space.
+Remote navigation is predictable in every direction.
+Voice commands can control streams, shelf content, ticker, stocks, and layout.
+The layout uses significantly less padding than the legacy model.
+The design feels appropriate for large modern screens and closer viewing distances.
+Playback remains the hero, but browsing and utilities are always accessible.
